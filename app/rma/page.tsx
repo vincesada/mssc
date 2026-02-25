@@ -44,10 +44,21 @@ export default function RMAPage() {
     purchasedDate: '',
     warranty: true,
     repairType: '',
+    companyName: '',
+    contactPerson: '',
+    emailOrNumber: '',
   });
 
   const resetForm = () => {
-    setFormData({ itemReturned: '', purchasedDate: '', warranty: true, repairType: '' });
+    setFormData({
+      itemReturned: '',
+      purchasedDate: '',
+      warranty: true,
+      repairType: '',
+      companyName: '',
+      contactPerson: '',
+      emailOrNumber: '',
+    });
     setEditingId(null);
   };
 
@@ -58,6 +69,9 @@ export default function RMAPage() {
         purchasedDate: rma.purchasedDate,
         warranty: rma.warranty,
         repairType: rma.repairType,
+        companyName: rma.companyName || '',
+        contactPerson: rma.contactPerson || '',
+        emailOrNumber: rma.emailOrNumber || '',
       });
       setEditingId(rma.id);
     } else {
@@ -92,6 +106,7 @@ export default function RMAPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">RMA Management</h1>
@@ -103,6 +118,7 @@ export default function RMAPage() {
         </Button>
       </div>
 
+      {/* RMA Cards */}
       {rmas.length === 0 ? (
         <Card>
           <CardContent className="pt-12">
@@ -142,18 +158,25 @@ export default function RMAPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2">
                 <div>
                   <p className="text-sm text-muted-foreground">Repair Type</p>
                   <p className="font-medium">{rma.repairType}</p>
-                  {rma.warranty && (
-                    <p className="text-xs text-green-600 mt-1">Free repair or item change</p>
-                  )}
-                  {!rma.warranty && (
-                    <p className="text-xs text-orange-600 mt-1">Repair with applicable fee</p>
-                  )}
+                  {rma.warranty && <p className="text-xs text-green-600 mt-1">Free repair or item change</p>}
+                  {!rma.warranty && <p className="text-xs text-orange-600 mt-1">Repair with applicable fee</p>}
                 </div>
-
+                <div>
+                  <p className="text-sm text-muted-foreground">Company</p>
+                  <p className="font-medium">{rma.companyName || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Contact Person</p>
+                  <p className="font-medium">{rma.contactPerson || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Email / Contact Number</p>
+                  <p className="font-medium">{rma.emailOrNumber || '-'}</p>
+                </div>
                 <div className="flex gap-2 pt-4">
                   <Button
                     variant="outline"
@@ -254,12 +277,41 @@ export default function RMAPage() {
                 onChange={(e) => setFormData({ ...formData, repairType: e.target.value })}
               />
             </div>
+
+            {/* New Fields */}
+            <div>
+              <Label htmlFor="companyName">Company Name</Label>
+              <Input
+                id="companyName"
+                placeholder="Enter company name"
+                value={formData.companyName}
+                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="contactPerson">Contact Person</Label>
+              <Input
+                id="contactPerson"
+                placeholder="Enter contact person"
+                value={formData.contactPerson}
+                onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="emailOrNumber">Email or Contact Number</Label>
+              <Input
+                id="emailOrNumber"
+                placeholder="Enter email or phone number"
+                value={formData.emailOrNumber}
+                onChange={(e) => setFormData({ ...formData, emailOrNumber: e.target.value })}
+              />
+            </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave}>{editingId ? 'Update' : 'Add'}</Button>
           </DialogFooter>
         </DialogContent>

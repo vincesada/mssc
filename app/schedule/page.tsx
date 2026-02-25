@@ -26,23 +26,46 @@ import {
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { Schedule as ScheduleType } from '@/app/context/DataContext';
 
+interface ScheduleFormData {
+  title: string;
+  description: string;
+  datetime: string;
+  location: string;
+  clientType: string;
+  company: string;
+  contact: string;
+  emailOrNumber: string;
+}
+
 export default function SchedulePage() {
   const { schedules, addSchedule, updateSchedule, deleteSchedule } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<ScheduleFormData>({
     title: '',
     description: '',
-    date: '',
-    time: '',
+    datetime: '',
     location: '',
+    clientType: '',
+    company: '',
+    contact: '',
+    emailOrNumber: '',
   });
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', date: '', time: '', location: '' });
+    setFormData({
+      title: '',
+      description: '',
+      datetime: '',
+      location: '',
+      clientType: '',
+      company: '',
+      contact: '',
+      emailOrNumber: '',
+    });
     setEditingId(null);
   };
 
@@ -51,9 +74,12 @@ export default function SchedulePage() {
       setFormData({
         title: schedule.title,
         description: schedule.description,
-        date: schedule.date,
-        time: schedule.time,
+        datetime: schedule.datetime || '',
         location: schedule.location,
+        clientType: schedule.clientType || '',
+        company: schedule.company || '',
+        contact: schedule.contact || '',
+        emailOrNumber: schedule.emailOrNumber || '',
       });
       setEditingId(schedule.id);
     } else {
@@ -63,7 +89,7 @@ export default function SchedulePage() {
   };
 
   const handleSave = () => {
-    if (!formData.title || !formData.date || !formData.time) {
+    if (!formData.title || !formData.datetime) {
       alert('Please fill in all required fields');
       return;
     }
@@ -88,23 +114,24 @@ export default function SchedulePage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Schedule Management</h1>
-          <p className="text-muted-foreground mt-2">Manage your schedules with add, edit, and delete options</p>
+          <p className="text-muted-foreground mt-2">
+            Manage your schedules with add, edit, and delete options
+          </p>
         </div>
         <Button onClick={() => handleOpenDialog()} className="gap-2">
-          <Plus size={20} />
-          Add Schedule
+          <Plus size={20} /> Add Schedule
         </Button>
       </div>
 
+      {/* Schedule Cards */}
       {schedules.length === 0 ? (
         <Card>
-          <CardContent className="pt-12">
-            <div className="text-center">
-              <p className="text-muted-foreground">No schedules yet. Create your first schedule!</p>
-            </div>
+          <CardContent className="pt-12 text-center">
+            <p className="text-muted-foreground">No schedules yet. Create your first schedule!</p>
           </CardContent>
         </Card>
       ) : (
@@ -115,15 +142,22 @@ export default function SchedulePage() {
                 <CardTitle className="text-lg">{schedule.title}</CardTitle>
                 <CardDescription>{schedule.location}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Date & Time</p>
-                  <p className="font-medium">{schedule.date} at {schedule.time}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Description</p>
-                  <p className="text-sm">{schedule.description}</p>
-                </div>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-muted-foreground">Date & Time</p>
+                <p className="font-medium">{schedule.datetime}</p>
+
+                <p className="text-sm text-muted-foreground">Client Type</p>
+                <p className="font-medium">{schedule.clientType}</p>
+
+                <p className="text-sm text-muted-foreground">Company</p>
+                <p className="font-medium">{schedule.company}</p>
+
+                <p className="text-sm text-muted-foreground">Contact</p>
+                <p className="font-medium">{schedule.contact} ({schedule.emailOrNumber})</p>
+
+                <p className="text-sm text-muted-foreground">Description</p>
+                <p className="text-sm">{schedule.description}</p>
+
                 <div className="flex gap-2 pt-4">
                   <Button
                     variant="outline"
@@ -131,8 +165,7 @@ export default function SchedulePage() {
                     onClick={() => handleOpenDialog(schedule)}
                     className="flex-1 gap-2"
                   >
-                    <Edit2 size={16} />
-                    Edit
+                    <Edit2 size={16} /> Edit
                   </Button>
                   <Button
                     variant="destructive"
@@ -143,8 +176,7 @@ export default function SchedulePage() {
                     }}
                     className="flex-1 gap-2"
                   >
-                    <Trash2 size={16} />
-                    Delete
+                    <Trash2 size={16} /> Delete
                   </Button>
                 </div>
               </CardContent>
@@ -174,25 +206,58 @@ export default function SchedulePage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="date">Date *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="time">Time *</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                />
-              </div>
+            <div>
+              <Label htmlFor="datetime">Date & Time *</Label>
+              <Input
+                id="datetime"
+                type="datetime-local"
+                value={formData.datetime}
+                onChange={(e) => setFormData({ ...formData, datetime: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="clientType">Client Type *</Label>
+              <select
+                id="clientType"
+                value={formData.clientType}
+                onChange={(e) => setFormData({ ...formData, clientType: e.target.value })}
+                className="w-full border rounded px-2 py-1"
+              >
+                <option value="">Select client type</option>
+                <option value="underwarranty">Under Warranty</option>
+                <option value="newclient">New Client</option>
+              </select>
+            </div>
+
+            <div>
+              <Label htmlFor="company">Company Name</Label>
+              <Input
+                id="company"
+                placeholder="Company Name"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="contact">Contact Person</Label>
+              <Input
+                id="contact"
+                placeholder="Contact Person"
+                value={formData.contact}
+                onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="emailOrNumber">Email or Number</Label>
+              <Input
+                id="emailOrNumber"
+                placeholder="Email or Phone Number"
+                value={formData.emailOrNumber}
+                onChange={(e) => setFormData({ ...formData, emailOrNumber: e.target.value })}
+              />
             </div>
 
             <div>
@@ -235,7 +300,10 @@ export default function SchedulePage() {
           </AlertDialogDescription>
           <DialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </DialogFooter>

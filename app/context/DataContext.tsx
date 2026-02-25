@@ -6,18 +6,25 @@ export interface Schedule {
   id: string;
   title: string;
   description: string;
-  date: string;
-  time: string;
+  datetime: string;       // combined date & time
   location: string;
+  clientType: string;     // underwarranty | newclient
+  company: string;
+  contact: string;
+  emailOrNumber: string;
 }
 
 export interface Renewal {
   id: string;
   clientName: string;
+  companyName?: string;       // added
+  contactPerson?: string;     // added
+  emailOrNumber?: string;     // added
   office: string;
   expiryDate: string;
   renewedDate: string;
 }
+
 
 export interface RMA {
   id: string;
@@ -25,6 +32,9 @@ export interface RMA {
   purchasedDate: string;
   warranty: boolean;
   repairType: string; // free repair/change item or repair with fee
+  companyName?: string;      // added
+  contactPerson?: string;    // added
+  emailOrNumber?: string;    // added
 }
 
 export interface Installation {
@@ -33,14 +43,16 @@ export interface Installation {
   company: string;
   dateTime: string;
   location: string;
-  devices?: string[]; // Array of device names being installed
+  devices: string[]; // now references Product.name
 }
 
 export interface Product {
   id: string;
   name: string;
   category: string;
-  description: string;
+  description?: string;
+  quantity: number;      // Available stock
+  image?: string;        // URL or Base64 string
 }
 
 export interface Device {

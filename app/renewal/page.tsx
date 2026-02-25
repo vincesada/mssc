@@ -34,20 +34,34 @@ export default function RenewalPage() {
 
   const [formData, setFormData] = useState({
     clientName: '',
+    companyName: '',
+    contactPerson: '',
+    emailOrNumber: '',
     office: '',
     expiryDate: '',
     renewedDate: '',
   });
 
   const resetForm = () => {
-    setFormData({ clientName: '', office: '', expiryDate: '', renewedDate: '' });
+    setFormData({
+      clientName: '',
+      companyName: '',
+      contactPerson: '',
+      emailOrNumber: '',
+      office: '',
+      expiryDate: '',
+      renewedDate: '',
+    });
     setEditingId(null);
   };
 
-  const handleOpenDialog = (renewal?: RenewalType) => {
+  const handleOpenDialog = (renewal?: RenewalType & any) => {
     if (renewal) {
       setFormData({
-        clientName: renewal.clientName,
+        clientName: renewal.clientName || '',
+        companyName: renewal.companyName || '',
+        contactPerson: renewal.contactPerson || '',
+        emailOrNumber: renewal.emailOrNumber || '',
         office: renewal.office,
         expiryDate: renewal.expiryDate,
         renewedDate: renewal.renewedDate,
@@ -132,6 +146,14 @@ export default function RenewalPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Company</p>
+                  <p className="font-medium">{renewal.companyName || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Contact Person</p>
+                  <p className="font-medium">{renewal.contactPerson || '-'} ({renewal.emailOrNumber || '-'})</p>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Expiry Date</p>
@@ -194,7 +216,37 @@ export default function RenewalPage() {
             </div>
 
             <div>
-              <Label htmlFor="office">Office/Bio Office</Label>
+              <Label htmlFor="companyName">Company Name</Label>
+              <Input
+                id="companyName"
+                placeholder="Company name"
+                value={formData.companyName}
+                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="contactPerson">Contact Person</Label>
+              <Input
+                id="contactPerson"
+                placeholder="Contact person"
+                value={formData.contactPerson}
+                onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="emailOrNumber">Email or Phone Number</Label>
+              <Input
+                id="emailOrNumber"
+                placeholder="Email or phone number"
+                value={formData.emailOrNumber}
+                onChange={(e) => setFormData({ ...formData, emailOrNumber: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="office">Office Location</Label>
               <Input
                 id="office"
                 placeholder="Office location"
@@ -243,7 +295,10 @@ export default function RenewalPage() {
           </AlertDialogDescription>
           <DialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </DialogFooter>
