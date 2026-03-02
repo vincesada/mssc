@@ -1,66 +1,67 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
+/* ================== Interfaces ================== */
 export interface Schedule {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  datetime: string;       // combined date & time
+  datetime: string;
   location: string;
-  clientType: string;     // underwarranty | newclient
+  clientType: string;
   company: string;
   contact: string;
   emailOrNumber: string;
 }
 
 export interface Renewal {
-  id: string;
+  id: number;
   clientName: string;
-  companyName?: string;       // added
-  contactPerson?: string;     // added
-  emailOrNumber?: string;     // added
+  companyName?: string;
+  contactPerson?: string;
+  emailOrNumber?: string;
   office: string;
   expiryDate: string;
   renewedDate: string;
 }
 
-
 export interface RMA {
-  id: string;
+  id: number;
   itemReturned: string;
   purchasedDate: string;
   warranty: boolean;
-  repairType: string; // free repair/change item or repair with fee
-  companyName?: string;      // added
-  contactPerson?: string;    // added
-  emailOrNumber?: string;    // added
+  repairType: string;
+  companyName?: string;
+  contactPerson?: string;
+  emailOrNumber?: string;
 }
 
 export interface Installation {
-  id: string;
+  id: number;
   project: string;
   company: string;
   dateTime: string;
   location: string;
-  devices: string[]; // now references Product.name
+  devices: string[];
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   category: string;
   description?: string;
-  quantity: number;      // Available stock
-  image?: string;        // URL or Base64 string
+  quantity: number;
+  image?: string;
 }
 
 export interface Device {
-  id: string;
+  id: number;
   name: string;
   type: string;
 }
 
+/* ================== Context Type ================== */
 interface DataContextType {
   schedules: Schedule[];
   renewals: Renewal[];
@@ -68,39 +69,36 @@ interface DataContextType {
   installations: Installation[];
   products: Product[];
   devices: Device[];
-  
-  // Schedule operations
-  addSchedule: (schedule: Omit<Schedule, 'id'>) => void;
-  updateSchedule: (id: string, schedule: Omit<Schedule, 'id'>) => void;
-  deleteSchedule: (id: string) => void;
-  
-  // Renewal operations
-  addRenewal: (renewal: Omit<Renewal, 'id'>) => void;
-  updateRenewal: (id: string, renewal: Omit<Renewal, 'id'>) => void;
-  deleteRenewal: (id: string) => void;
-  
-  // RMA operations
-  addRMA: (rma: Omit<RMA, 'id'>) => void;
-  updateRMA: (id: string, rma: Omit<RMA, 'id'>) => void;
-  deleteRMA: (id: string) => void;
-  
-  // Installation operations
-  addInstallation: (installation: Omit<Installation, 'id'>) => void;
-  updateInstallation: (id: string, installation: Omit<Installation, 'id'>) => void;
-  deleteInstallation: (id: string) => void;
-  
-  // Product operations
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (id: string, product: Omit<Product, 'id'>) => void;
-  deleteProduct: (id: string) => void;
-  
-  // Device operations
-  addDevice: (device: Omit<Device, 'id'>) => void;
-  deleteDevice: (id: string) => void;
+  isLoaded: boolean;
+
+  addSchedule: (data: Omit<Schedule, 'id'>) => Promise<void>;
+  updateSchedule: (id: number, data: Omit<Schedule, 'id'>) => Promise<void>;
+  deleteSchedule: (id: number) => Promise<void>;
+
+  addRenewal: (data: Omit<Renewal, 'id'>) => Promise<void>;
+  updateRenewal: (id: number, data: Omit<Renewal, 'id'>) => Promise<void>;
+  deleteRenewal: (id: number) => Promise<void>;
+
+  addRMA: (data: Omit<RMA, 'id'>) => Promise<void>;
+  updateRMA: (id: number, data: Omit<RMA, 'id'>) => Promise<void>;
+  deleteRMA: (id: number) => Promise<void>;
+
+  addInstallation: (data: Omit<Installation, 'id'>) => Promise<void>;
+  updateInstallation: (id: number, data: Omit<Installation, 'id'>) => Promise<void>;
+  deleteInstallation: (id: number) => Promise<void>;
+
+  addProduct: (data: Omit<Product, 'id'>) => Promise<void>;
+  updateProduct: (id: number, data: Omit<Product, 'id'>) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
+
+  addDevice: (data: Omit<Device, 'id'>) => Promise<void>;
+  deleteDevice: (id: number) => Promise<void>;
 }
 
+/* ================== Context ================== */
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+/* ================== Provider ================== */
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [renewals, setRenewals] = useState<Renewal[]>([]);
@@ -110,145 +108,159 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load data from localStorage on mount
+  /* ================== Load All ================== */
   useEffect(() => {
-    const savedSchedules = localStorage.getItem('schedules');
-    const savedRenewals = localStorage.getItem('renewals');
-    const savedRMAs = localStorage.getItem('rmas');
-    const savedInstallations = localStorage.getItem('installations');
-    const savedProducts = localStorage.getItem('products');
-    const savedDevices = localStorage.getItem('devices');
+    async function loadAll() {
+      try {
+        const [s, r, rma, i, p, d] = await Promise.all([
+          fetch('/api/schedules').then(r => r.json()),
+          fetch('/api/renewals').then(r => r.json()),
+          fetch('/api/rmas').then(r => r.json()),
+          fetch('/api/installations').then(r => r.json()),
+          fetch('/api/products').then(r => r.json()),
+          fetch('/api/devices').then(r => r.json()),
+        ]);
 
-    if (savedSchedules) setSchedules(JSON.parse(savedSchedules));
-    if (savedRenewals) setRenewals(JSON.parse(savedRenewals));
-    if (savedRMAs) setRMAs(JSON.parse(savedRMAs));
-    if (savedInstallations) setInstallations(JSON.parse(savedInstallations));
-    if (savedProducts) setProducts(JSON.parse(savedProducts));
-    if (savedDevices) setDevices(JSON.parse(savedDevices));
-    
-    setIsLoaded(true);
+        setSchedules(s);
+        setRenewals(r);
+        setRMAs(rma);
+        setInstallations(
+          i.map((x: any) => ({
+            ...x,
+            devices: Array.isArray(x.devices)
+              ? x.devices
+              : JSON.parse(x.devices ?? '[]'),
+          }))
+        );
+        setProducts(p);
+        setDevices(d);
+      } catch (err) {
+        console.error('Load failed', err);
+      } finally {
+        setIsLoaded(true);
+      }
+    }
+    loadAll();
   }, []);
 
-  // Save schedules to localStorage whenever they change
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('schedules', JSON.stringify(schedules));
-    }
-  }, [schedules, isLoaded]);
+  /* ================== Helpers ================== */
+  const post = async (url: string, data: any) =>
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json());
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('renewals', JSON.stringify(renewals));
-    }
-  }, [renewals, isLoaded]);
+  const put = async (url: string, data: any) =>
+    fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json());
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('rmas', JSON.stringify(rmas));
-    }
-  }, [rmas, isLoaded]);
+  const remove = async (url: string) =>
+    fetch(url, { method: 'DELETE' });
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('installations', JSON.stringify(installations));
-    }
-  }, [installations, isLoaded]);
+  /* ================== CRUD ================== */
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('products', JSON.stringify(products));
-    }
-  }, [products, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('devices', JSON.stringify(devices));
-    }
-  }, [devices, isLoaded]);
-
-  // Schedule operations
-  const addSchedule = (schedule: Omit<Schedule, 'id'>) => {
-    const newSchedule = { ...schedule, id: Date.now().toString() };
-    setSchedules([...schedules, newSchedule]);
+  // Schedules
+  const addSchedule = async (data: Omit<Schedule, 'id'>) => {
+    const created = await post('/api/schedules', data);
+    setSchedules(prev => [...prev, created]);
   };
 
-  const updateSchedule = (id: string, schedule: Omit<Schedule, 'id'>) => {
-    setSchedules(schedules.map(s => s.id === id ? { ...schedule, id } : s));
+  const updateSchedule = async (id: number, data: Omit<Schedule, 'id'>) => {
+    const updated = await put(`/api/schedules/${id}`, data);
+    setSchedules(prev => prev.map(s => (s.id === id ? updated : s)));
   };
 
-  const deleteSchedule = (id: string) => {
-    setSchedules(schedules.filter(s => s.id !== id));
+  const deleteSchedule = async (id: number) => {
+    await remove(`/api/schedules/${id}`);
+    setSchedules(prev => prev.filter(s => s.id !== id));
   };
 
-  // Renewal operations
-  const addRenewal = (renewal: Omit<Renewal, 'id'>) => {
-    const newRenewal = { ...renewal, id: Date.now().toString() };
-    setRenewals([...renewals, newRenewal]);
+  // Renewals
+  const addRenewal = async (data: Omit<Renewal, 'id'>) => {
+    const created = await post('/api/renewals', data);
+    setRenewals(prev => [...prev, created]);
   };
 
-  const updateRenewal = (id: string, renewal: Omit<Renewal, 'id'>) => {
-    setRenewals(renewals.map(r => r.id === id ? { ...renewal, id } : r));
+  const updateRenewal = async (id: number, data: Omit<Renewal, 'id'>) => {
+    const updated = await put(`/api/renewals/${id}`, data);
+    setRenewals(prev => prev.map(r => (r.id === id ? updated : r)));
   };
 
-  const deleteRenewal = (id: string) => {
-    setRenewals(renewals.filter(r => r.id !== id));
+  const deleteRenewal = async (id: number) => {
+    await remove(`/api/renewals/${id}`);
+    setRenewals(prev => prev.filter(r => r.id !== id));
   };
 
-  // RMA operations
-  const addRMA = (rma: Omit<RMA, 'id'>) => {
-    const newRMA = { ...rma, id: Date.now().toString() };
-    setRMAs([...rmas, newRMA]);
+  // RMAs
+  const addRMA = async (data: Omit<RMA, 'id'>) => {
+    const created = await post('/api/rmas', data);
+    setRMAs(prev => [...prev, created]);
   };
 
-  const updateRMA = (id: string, rma: Omit<RMA, 'id'>) => {
-    setRMAs(rmas.map(r => r.id === id ? { ...rma, id } : r));
+  const updateRMA = async (id: number, data: Omit<RMA, 'id'>) => {
+    const updated = await put(`/api/rmas/${id}`, data);
+    setRMAs(prev => prev.map(r => (r.id === id ? updated : r)));
   };
 
-  const deleteRMA = (id: string) => {
-    setRMAs(rmas.filter(r => r.id !== id));
+  const deleteRMA = async (id: number) => {
+    await remove(`/api/rmas/${id}`);
+    setRMAs(prev => prev.filter(r => r.id !== id));
   };
 
-  // Installation operations
-  const addInstallation = (installation: Omit<Installation, 'id'>) => {
-    const newInstallation = { ...installation, id: Date.now().toString() };
-    setInstallations([...installations, newInstallation]);
+  // Installations
+  const addInstallation = async (data: Omit<Installation, 'id'>) => {
+    const created = await post('/api/installations', {
+      ...data,
+      devices: JSON.stringify(data.devices),
+    });
+    created.devices = JSON.parse(created.devices);
+    setInstallations(prev => [...prev, created]);
   };
 
-  const updateInstallation = (id: string, installation: Omit<Installation, 'id'>) => {
-    setInstallations(installations.map(i => i.id === id ? { ...installation, id } : i));
+  const updateInstallation = async (id: number, data: Omit<Installation, 'id'>) => {
+    const updated = await put(`/api/installations/${id}`, {
+      ...data,
+      devices: JSON.stringify(data.devices),
+    });
+    updated.devices = JSON.parse(updated.devices);
+    setInstallations(prev => prev.map(i => (i.id === id ? updated : i)));
   };
 
-  const deleteInstallation = (id: string) => {
-    setInstallations(installations.filter(i => i.id !== id));
+  const deleteInstallation = async (id: number) => {
+    await remove(`/api/installations/${id}`);
+    setInstallations(prev => prev.filter(i => i.id !== id));
   };
 
-  // Product operations
-  const addProduct = (product: Omit<Product, 'id'>) => {
-    const newProduct = { ...product, id: Date.now().toString() };
-    setProducts([...products, newProduct]);
+  // Products
+  const addProduct = async (data: Omit<Product, 'id'>) => {
+    const created = await post('/api/products', data);
+    setProducts(prev => [...prev, created]);
   };
 
-  const updateProduct = (id: string, product: Omit<Product, 'id'>) => {
-    setProducts(products.map(p => p.id === id ? { ...product, id } : p));
+  const updateProduct = async (id: number, data: Omit<Product, 'id'>) => {
+    const updated = await put(`/api/products/${id}`, data);
+    setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
   };
 
-  const deleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
+  const deleteProduct = async (id: number) => {
+    await remove(`/api/products/${id}`);
+    setProducts(prev => prev.filter(p => p.id !== id));
   };
 
-  // Device operations
-  const addDevice = (device: Omit<Device, 'id'>) => {
-    const newDevice = { ...device, id: Date.now().toString() };
-    setDevices([...devices, newDevice]);
+  // Devices
+  const addDevice = async (data: Omit<Device, 'id'>) => {
+    const created = await post('/api/devices', data);
+    setDevices(prev => [...prev, created]);
   };
 
-  const deleteDevice = (id: string) => {
-    setDevices(devices.filter(d => d.id !== id));
+  const deleteDevice = async (id: number) => {
+    await remove(`/api/devices/${id}`);
+    setDevices(prev => prev.filter(d => d.id !== id));
   };
-
-  if (!isLoaded) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <DataContext.Provider
@@ -259,6 +271,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         installations,
         products,
         devices,
+        isLoaded,
         addSchedule,
         updateSchedule,
         deleteSchedule,
@@ -283,10 +296,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ================== Hook ================== */
 export function useData() {
-  const context = useContext(DataContext);
-  if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider');
-  }
-  return context;
+  const ctx = useContext(DataContext);
+  if (!ctx) throw new Error('useData must be used within DataProvider');
+  return ctx;
 }

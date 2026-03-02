@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Calendar, RotateCcw, AlertCircle, Wrench, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import ScheduleCalendar from '@/components/ScheduleCalendar';
 
 export default function DashboardPage() {
   const { schedules, renewals, rmas, installations } = useData();
@@ -83,6 +84,16 @@ export default function DashboardPage() {
         })}
       </div>
 
+   {/* Calendar */}
+<div style={{ maxWidth: '860px' }}>
+  <ScheduleCalendar
+    schedules={schedules}
+    renewals={renewals}
+    rmas={rmas}
+    installations={installations}
+  />
+</div>
+
       {/* Alerts Section */}
       {expiredCount > 0 && (
         <Card className="border-orange-200 bg-orange-50">
@@ -116,7 +127,7 @@ export default function DashboardPage() {
       )}
 
       {/* Recent Schedules */}
-      {schedules.length > 0 && (
+      {/* {schedules.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Upcoming Schedules</CardTitle>
@@ -132,7 +143,7 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{schedule.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {schedule.date} at {schedule.time} • {schedule.location}
+                      {schedule.datetime} • {schedule.location}
                     </p>
                   </div>
                   <TrendingUp size={16} className="text-gray-400 flex-shrink-0" />
@@ -146,7 +157,7 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Empty State */}
       {schedules.length === 0 && renewals.length === 0 && rmas.length === 0 && installations.length === 0 && (
